@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: mrprateek12/devflix-frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: CATALOGUE_URL
+          value: "http://catalogue:5000"
+        - name: VOTING_URL
+          value: "http://voting:8080"
+        - name: RECOMMENDATION_URL
+          value: "http://recommendation:8000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    targetPort: 3000

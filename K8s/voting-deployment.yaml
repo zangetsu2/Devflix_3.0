@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voting
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: voting
+  template:
+    metadata:
+      labels:
+        app: voting
+    spec:
+      containers:
+      - name: voting
+        image: mrprateek12/devflix-voting:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/devflix"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "dev"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "dev"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voting
+spec:
+  selector:
+    app: voting
+  ports:
+  - port: 8080
+    targetPort: 8080
