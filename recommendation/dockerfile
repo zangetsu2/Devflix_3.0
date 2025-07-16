@@ -1,0 +1,33 @@
+# FROM golang:1.20-alpine AS build
+# WORKDIR /app
+# COPY go.mod main.go ./
+# RUN go build -o reco
+
+# FROM alpine:3.18
+# COPY --from=build /app/reco /usr/local/bin/reco
+# EXPOSE 8000
+# ENTRYPOINT ["reco"]
+
+# Stage 1: Build
+FROM golang:1.20-alpine AS builder
+
+WORKDIR /app
+
+# Cache dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source
+COPY main.go ./
+
+# Build binary with trimpath
+RUN go build -trimpath -o reco
+
+# Stage 2: Runtime
+FROM alpine:3.18
+
+COPY --from=builder /app/reco /usr/local/bin/reco
+
+EXPOSE 8000
+
+ENTRYPOINT ["reco"]

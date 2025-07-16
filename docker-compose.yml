@@ -1,0 +1,32 @@
+services:
+  frontend:
+    build: ./frontend
+    ports: ['3000:3000']
+    env_file: .env.frontend
+    depends_on: ['catalogue','voting','recommendation']
+  catalogue:
+    build: ./catalogue
+    ports: ['5000:5000']
+    env_file: .env.catalogue
+    depends_on: ['mongo']
+  voting:
+    build: ./voting
+    ports: ['8080:8080']
+    env_file: .env.voting
+    depends_on: ['postgres']
+  recommendation:
+    build: ./recommendation
+    ports: ['8000:8000']
+  mongo:
+    image: mongo:6
+    volumes: ['mongo-data:/data/db']
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: devflix
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+    volumes: ['pgdata:/var/lib/postgresql/data']
+volumes:
+  mongo-data:
+  pgdata:
