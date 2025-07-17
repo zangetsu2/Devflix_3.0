@@ -1,0 +1,25 @@
+    - name: Set Commit SHA Tag
+      run: echo "GIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+    - name: Build & Push All Images with Versioned Tags
+      run: |
+        for SERVICE in catalogue voting recommendation frontend; do
+          docker build -t $DOCKER_USER/devflix-$SERVICE:latest -t $DOCKER_USER/devflix-$SERVICE:${GIT_SHA} ./$SERVICE
+          docker push $DOCKER_USER/devflix-$SERVICE:latest
+          docker push $DOCKER_USER/devflix-$SERVICE:${GIT_SHA}
+        done
+
+    - name: Update K8s YAMLs with New Tags
+      run: |
+        sed -i "s|image: .*/devflix-catalogue:.*|image: $DOCKER_USER/devflix-catalogue:${GIT_SHA}|" k8s/catalogue-deployment.yaml
+        sed -i "s|image: .*/devflix-voting:.*|image: $DOCKER_USER/devflix-voting:${GIT_SHA}|" k8s/voting-deployment.yaml
+        sed -i "s|image: .*/devflix-recommendation:.*|image: $DOCKER_USER/devflix-recommendation:${GIT_SHA}|" k8s/recommendation-deployment.yaml
+        sed -i "s|image: .*/devflix-frontend:.*|image: $DOCKER_USER/devflix-frontend:${GIT_SHA}|" k8s/frontend-deployment.yaml
+
+    - name: Commit and Push YAML Updates
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add k8s/
+        git commit -m "Update k8s image tags to $GIT_SHA"
+        git push origin main
